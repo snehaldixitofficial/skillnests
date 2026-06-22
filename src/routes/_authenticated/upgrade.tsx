@@ -97,9 +97,10 @@ function UpgradePage() {
               { id: makeId(), uid: user.uid, email: user.email, name: user.name, utr: resp.razorpay_payment_id, note: `Razorpay subscription ${resp.razorpay_subscription_id}`, status: "verified", at: new Date().toISOString() },
             ]);
             toast.success("Subscription active — you're unlocked!");
-            setTimeout(() => window.location.reload(), 800);
+            setPaying(false);
           } catch (e: any) {
             toast.error(e?.message || "Verification failed. Contact support with payment ID " + resp.razorpay_payment_id);
+            setPaying(false);
           }
         },
         modal: { ondismiss: () => setPaying(false) },

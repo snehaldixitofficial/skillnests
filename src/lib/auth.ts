@@ -11,7 +11,7 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { auth as fbAuth, db, googleProvider } from "./firebase";
 
 if (typeof window !== "undefined") {
@@ -97,8 +97,11 @@ async function ensureProfile(u: User): Promise<AuthUser> {
   return { uid: u.uid, email, name, role, paid, paidUntil, isAuthenticated: true };
 }
 
+let userUnsub: (() => void) | null = null;
+
 if (typeof window !== "undefined") {
   onAuthStateChanged(fbAuth, async (u) => {
+    if (userUnsub) { userUnsub(); userUnsub = null; }
     if (u) {
       try {
         const profile = await ensureProfile(u);
@@ -110,6 +113,19 @@ if (typeof window !== "undefined") {
         } else {
           deviceBlocked = false;
           currentUser = profile;
+          
+          userUnsub = onSnapshot(doc(db, "users", u.uid), (snap) => {
+            if (snap.exists() && currentUser) {
+              const data = snap.data();
+              const paidUntil: string | undefined = typeof data?.paidUntil === "string" ? data.paidUntil : undefined;
+              const cycleActive = paidUntil ? new Date(paidUntil).getTime() > Date.now() : false;
+              const isFree = FREE_EMAILS.includes((u.email || "").toLowerCase());
+              const role = data.role || currentUser.role;
+              const paid = role === "admin" || isFree || cycleActive || !!data?.paid;
+              currentUser = { ...currentUser, role, paid, paidUntil };
+              emit();
+            }
+          });
         }
       } catch {
         currentUser = { uid: u.uid, email: (u.email || "").toLowerCase(), name: u.displayName || "Friend", role: ADMIN_EMAILS.includes((u.email || "").toLowerCase()) ? "admin" : "student", paid: ADMIN_EMAILS.includes((u.email || "").toLowerCase()), isAuthenticated: true };
