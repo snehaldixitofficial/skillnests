@@ -36,7 +36,7 @@ function AdminPage() {
     { to: "/notes", icon: FileText, title: "Notes", count: notesCount, desc: "Chapter-wise notes." },
     { to: "/meetings", icon: Video, title: "Meetings", count: meetingsCount, desc: "Schedule global meets." },
     { to: "/schedule", icon: Calendar, title: "Events", count: scheduleCount, desc: "Calendar entries." },
-    { to: "/career-guidance", icon: Compass, title: "Career", count: careerVidCount + careerLiveCount, desc: "Live + explore careers." },
+    { to: "/career-guidance", icon: Compass, title: "Career", count: careerVidCount + careerLiveCount, desc: `${careerLiveCount} live · ${careerVidCount} videos` },
     { to: "/skill-share", icon: Users, title: "Skill Share", count: skillCount, desc: "User submissions." },
     { to: "/coding-campus", icon: Code2, title: "Coding", count: codingCount, desc: "Workshops." },
     { to: "/mun", icon: BarChart3, title: "MUN", count: munCount, desc: "Topics & blocs." },
