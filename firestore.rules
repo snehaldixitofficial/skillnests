@@ -16,12 +16,14 @@ service cloud.firestore {
         && (request.resource.data.paid == false || 
             (request.resource.data.paid == true && request.auth.token.email in ['founders@skillnests.in', 'adilsukumar24@gmail.com', 'snehaldixit237@gmail.com']));
 
-      // Update: Block changing role unless authorized. Block changing paid or paidUntil entirely (webhook/admin bypasses).
-      allow update: if signedIn() && request.auth.uid == uid
+      // Update: Admin can do anything. Users can update themselves but cannot change paid/paidUntil or role.
+      allow update: if isAdmin() || (
+        signedIn() && request.auth.uid == uid
         && (!('role' in request.resource.data.diff(resource.data).affectedKeys())
             || request.resource.data.role == (request.auth.token.email == 'founders@skillnests.in' ? 'admin' : 'student'))
         && (!('paid' in request.resource.data.diff(resource.data).affectedKeys()))
-        && (!('paidUntil' in request.resource.data.diff(resource.data).affectedKeys()));
+        && (!('paidUntil' in request.resource.data.diff(resource.data).affectedKeys()))
+      );
     }
 
     // Group chat: any signed-in user can read & post; admin can delete.
