@@ -87,6 +87,14 @@ function UpgradePage() {
         description: `Monthly membership — ₹${PRICE}/month, auto-renews`,
         prefill: { name: user.name, email: user.email },
         theme: { color: "#c8a27a" },
+        external: {
+          wallets: ['amazonpay'],
+          handler: function(data: any) {
+            console.log(data.wallet);
+            toast.info(`${data.wallet} selected. Please process externally.`);
+            setPaying(false);
+          }
+        },
         handler: async (resp: { razorpay_subscription_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
             await verifySub({ data: { subscriptionId: resp.razorpay_subscription_id, paymentId: resp.razorpay_payment_id, signature: resp.razorpay_signature } });
