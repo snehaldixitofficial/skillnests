@@ -15,7 +15,7 @@ const links: { label: string; to: string }[] = [
   { label: "Olympiads", to: "/olympiads" },
   { label: "MUN", to: "/mun" },
   { label: "Skill Share", to: "/skill-share" },
-  { label: "Founder", to: "/founder" },
+  { label: "The Team", to: "/founder" },
 ];
 
 export function Navbar() {
