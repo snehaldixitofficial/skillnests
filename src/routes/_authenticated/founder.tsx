@@ -12,6 +12,7 @@ import abhinavPhoto from "@/assets/abhinav.jpeg";
 import anamPhoto from "@/assets/anam.jpeg";
 import sanviPhoto from "@/assets/sanvi.jpeg";
 import miskaPhoto from "@/assets/miska rai.jpeg";
+import aravPhoto from "@/assets/aravPhoto.jpg";
 import anantPhoto from "@/assets/anant.jpeg";
 
 export const Route = createFileRoute("/_authenticated/founder")({
@@ -56,6 +57,7 @@ function FounderPage() {
             const coreMembers = [
               { name: "Sanvi Kumar", photo: sanviPhoto, bio: "Finally it's time that we take a step towards skillnests.in.", email: "sanvi.kumarstm@gmail.com" },
               { name: "Miska Rai", photo: miskaPhoto, bio: "Finally it's time that we take a step towards skillnests.in.", email: "raimiska.8579@gmail.com" },
+              { name: "Arav Raj", photo: aravPhoto, bio: "Building initiatives that create opportunities and positive impact for students and society join us in skillnest", email: "aravrajraj842@gmail.com" },
             ];
 
             const PersonCard = ({ f, role }: { f: any, role: string }) => (
