@@ -76,7 +76,7 @@ function Breadcrumb({ stream, subject, klass, year, onStream, onSubject, onClass
           <span className="text-muted-foreground">/</span>
           <button onClick={() => { onSubject(null); onClass(null); onYear(null); }} className="text-rose-gold">{STREAM_LABEL[stream]}</button>
           {subject && (<><span className="text-muted-foreground">/</span><button onClick={() => { onClass(null); onYear(null); }} className="text-rose-gold">{subject}</button></>)}
-          {klass && (<><span className="text-muted-foreground">/</span><button onClick={() => onYear(null)} className="text-rose-gold">{klass}th</button></>)}
+          {klass && (<><span className="text-muted-foreground">/</span><button onClick={() => onYear(null)} className="text-rose-gold">{klass === "Others" ? "Others" : `${klass}th`}</button></>)}
           {year !== null && (<><span className="text-muted-foreground">/</span><span className="text-rose-gold">{year}</span></>)}
         </div>
       )}
@@ -126,11 +126,11 @@ function SubjectGrid({ stream, onPick }: { stream: PYQStream; onPick: (s: PYQSub
 
 function ClassPicker({ stream, subject, onPick }: { stream: PYQStream; subject: PYQSubject; onPick: (k: PYQClass) => void }) {
   return (
-    <div className="grid grid-cols-2 gap-4 max-w-xl">
-      {(["11", "12"] as PYQClass[]).map((k) => (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
+      {(["11", "12", "Others"] as PYQClass[]).map((k) => (
         <button key={k} onClick={() => onPick(k)} className="glass-strong rounded-2xl p-10 text-center hover:border-rose-gold/40 transition">
-          <div className="font-serif text-5xl text-gradient-gold">{k}th</div>
-          <div className="text-xs text-muted-foreground font-mono mt-2 uppercase tracking-widest">Standard</div>
+          <div className="font-serif text-4xl text-gradient-gold">{k === "Others" ? "Others" : `${k}th`}</div>
+          <div className="text-xs text-muted-foreground font-mono mt-2 uppercase tracking-widest">{k === "Others" ? "Additional" : "Standard"}</div>
           <div className="text-xs text-rose-gold mt-3">{STREAM_LABEL[stream]} · {subject}</div>
         </button>
       ))}

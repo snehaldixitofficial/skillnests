@@ -6,7 +6,7 @@ import { query, where, or } from "firebase/firestore";
 /* ---------------- PYQ ---------------- */
 export type PYQStream = "boards" | "jee" | "neet";
 export type PYQSubject = "Mathematics" | "Physics" | "Chemistry" | "Biology" | "English";
-export type PYQClass = "11" | "12";
+export type PYQClass = "11" | "12" | "Others";
 export type PYQPaper = {
   id: string;
   stream?: PYQStream; // defaults to "boards" for legacy rows
