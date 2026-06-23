@@ -5,6 +5,7 @@
 // onSnapshot keeps an in-memory cache; .update(fn) diffs old vs new and writes the delta.
 
 import { useSyncExternalStore } from "react";
+import { toast } from "sonner";
 import {
   collection,
   doc,
@@ -25,7 +26,8 @@ type WithId = { id: string } & Record<string, unknown>;
 export function createLocalStore<T extends WithId[]>(
   collectionName: string, 
   initial: T,
-  buildQuery?: (col: ReturnType<typeof collection>, user: AuthUser) => Query
+  buildQuery?: (col: ReturnType<typeof collection>, user: AuthUser) => Query,
+  notifyName?: string
 ) {
   let cache: T = initial;
   let started = false;
@@ -42,8 +44,18 @@ export function createLocalStore<T extends WithId[]>(
         const user = authApi.current();
         if (!user) return;
         const ref = buildQuery ? buildQuery(collection(db, collectionName), user) : collection(db, collectionName);
+        let isFirstSnapshot = true;
         unsub = onSnapshot(ref, (snap) => {
           const next = snap.docs.map((d) => ({ id: d.id, ...(d.data() as object) })) as unknown as T;
+          
+          if (!isFirstSnapshot && notifyName && !user.isAdmin) {
+            const added = next.filter((n) => !cache.find((c) => c.id === n.id));
+            if (added.length > 0) {
+              toast(`Oh! The Admin added something in ${notifyName}, check it out!`, { icon: "✨" });
+            }
+          }
+          isFirstSnapshot = false;
+
           cache = next;
           listeners.forEach((l) => l());
         }, () => { /* permission errors swallowed; cache stays */ });

@@ -18,7 +18,7 @@ export type PYQPaper = {
   uploadedAt: string;
 };
 
-export const pyqStore = createLocalStore<PYQPaper[]>("sn-pyq", []);
+export const pyqStore = createLocalStore<PYQPaper[]>("sn-pyq", [], undefined, "Past Year Questions");
 
 /* ---------------- Notes ---------------- */
 export type NoteDoc = {
@@ -30,7 +30,7 @@ export type NoteDoc = {
   url: string;
   uploadedAt: string;
 };
-export const notesStore = createLocalStore<NoteDoc[]>("sn-notes", []);
+export const notesStore = createLocalStore<NoteDoc[]>("sn-notes", [], undefined, "Handwritten Notes");
 
 /* ---------------- Meetings ---------------- */
 export type Meeting = {
@@ -56,7 +56,7 @@ export type ScheduleEvent = {
   notes?: string;
   createdAt: string;
 };
-export const scheduleStore = createLocalStore<ScheduleEvent[]>("sn-schedule", []);
+export const scheduleStore = createLocalStore<ScheduleEvent[]>("sn-schedule", [], undefined, "the Schedule");
 
 /* ---------------- Chat ---------------- */
 export type GroupMsg = { id: string; senderEmail: string; senderName: string; body: string; at: string };
@@ -89,13 +89,13 @@ export type CodingWorkshop = {
   meetUrl: string;
   blurb: string;
 };
-export const codingStore = createLocalStore<CodingWorkshop[]>("sn-coding", []);
+export const codingStore = createLocalStore<CodingWorkshop[]>("sn-coding", [], undefined, "Coding Workshops");
 
 /* ---------------- Career Sessions ---------------- */
 export type CareerLive = { id: string; title: string; mentor: string; startsAt: string; meetUrl: string };
 export type CareerVideo = { id: string; title: string; speaker?: string; thumb?: string; videoUrl?: string; documentUrl?: string };
-export const careerLiveStore = createLocalStore<CareerLive[]>("sn-career-live", []);
-export const careerVideoStore = createLocalStore<CareerVideo[]>("sn-career-vids", []);
+export const careerLiveStore = createLocalStore<CareerLive[]>("sn-career-live", [], undefined, "Career Guidance");
+export const careerVideoStore = createLocalStore<CareerVideo[]>("sn-career-vids", [], undefined, "Career Guidance");
 
 /* ---------------- Founder Inbox ---------------- */
 export type FounderMsg = { id: string; fromName: string; fromEmail: string; body: string; at: string };
@@ -124,7 +124,7 @@ export type MunItem = {
   side?: "crimson" | "azure";
   documentUrl?: string;
 };
-export const munStore = createLocalStore<MunItem[]>("sn-mun", []);
+export const munStore = createLocalStore<MunItem[]>("sn-mun", [], undefined, "Model UN");
 
 /* ---------------- Olympiads (admin-controlled) ---------------- */
 export type OlympiadResource = { title: string; url: string };
@@ -136,4 +136,4 @@ export type OlympiadItem = {
   resources?: OlympiadResource[];
   blurb?: string;
 };
-export const olympiadStore = createLocalStore<OlympiadItem[]>("sn-olympiads", []);
+export const olympiadStore = createLocalStore<OlympiadItem[]>("sn-olympiads", [], undefined, "Olympiad");
