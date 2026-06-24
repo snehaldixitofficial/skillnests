@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Compass, ExternalLink, Plus, Trash2, Video, FileText, Eye } from "lucide-react";
 import { careerLiveStore, careerVideoStore } from "@/stores";
 import { uid } from "@/lib/local-store";
-import { PaidPageGate } from "@/components/PaidGate";
+import { PaidGate } from "@/components/PaidGate";
 import { DrivePdfViewer } from "@/components/DrivePdfViewer";
 import { isDriveUrl } from "@/lib/drive";
 
@@ -34,7 +34,7 @@ function CareerPage() {
           <h1 className="font-serif text-4xl mt-1">Pick a direction. Without panic.</h1>
         </div>
 
-        <PaidPageGate>
+        <>
           <div className="flex gap-2 mb-6 flex-wrap">
             <Tab active={tab === "live"} onClick={() => setTab("live")}>Live class & links</Tab>
             <Tab active={tab === "videos"} onClick={() => setTab("videos")}>Explore careers</Tab>
@@ -42,7 +42,7 @@ function CareerPage() {
 
           {tab === "live" && <LiveSection isAdmin={isAdmin} />}
           {tab === "videos" && <VideosSection isAdmin={isAdmin} />}
-        </PaidPageGate>
+        </>
       </div>
     </main>
   );
@@ -76,14 +76,20 @@ function LiveSection({ isAdmin }: { isAdmin: boolean }) {
       )}
       <div className="space-y-3">
         {live.length === 0 && <div className="glass rounded-2xl p-10 text-center text-sm text-muted-foreground">No live classes scheduled.</div>}
-        {live.map((s) => (
+        {live.map((s, i) => (
           <div key={s.id} className="glass rounded-2xl p-4 flex items-center gap-4">
             <Compass className="w-5 h-5 text-rose-gold shrink-0" strokeWidth={1.2} />
             <div className="flex-1 min-w-0">
               <div className="font-serif text-lg truncate">{s.title}</div>
               <div className="text-xs text-muted-foreground">{s.mentor} · {new Date(s.startsAt).toLocaleString()}</div>
             </div>
-            <a href={normalizeUrl(s.meetUrl)} target="_blank" rel="noreferrer" className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><ExternalLink className="w-3 h-3" /> Join</a>
+            {i === 0 ? (
+              <a href={normalizeUrl(s.meetUrl)} target="_blank" rel="noreferrer" className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><ExternalLink className="w-3 h-3" /> Join</a>
+            ) : (
+              <PaidGate label="Locked">
+                <a href={normalizeUrl(s.meetUrl)} target="_blank" rel="noreferrer" className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><ExternalLink className="w-3 h-3" /> Join</a>
+              </PaidGate>
+            )}
             {isAdmin && <button onClick={() => careerLiveStore.update((p) => p.filter((x) => x.id !== s.id))} className="text-muted-foreground hover:text-crimson p-2"><Trash2 className="w-4 h-4" /></button>}
           </div>
         ))}
@@ -127,18 +133,30 @@ function VideosSection({ isAdmin }: { isAdmin: boolean }) {
       )}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.length === 0 && <div className="glass rounded-2xl p-10 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-3">No career resources yet.</div>}
-        {items.map((item) => {
+        {items.map((item, i) => {
           const isVideo = !!item.videoUrl;
           return (
             <div key={item.id} className="glass rounded-2xl overflow-hidden group hover:border-rose-gold/40 transition block relative">
               {isVideo ? (
-                <a href={normalizeUrl(item.videoUrl!)} target="_blank" rel="noreferrer" className="block">
-                  <div className="aspect-video relative" style={{ background: item.thumb ? `url(${item.thumb}) center/cover` : "linear-gradient(135deg, oklch(0.3 0.08 30), oklch(0.2 0.05 25))" }}>
-                    <div className="absolute inset-0 grid place-items-center bg-black/20 group-hover:bg-black/40 transition">
-                      <Video className="w-10 h-10 text-rose-gold" strokeWidth={1.2} />
+                i === 0 ? (
+                  <a href={normalizeUrl(item.videoUrl!)} target="_blank" rel="noreferrer" className="block">
+                    <div className="aspect-video relative" style={{ background: item.thumb ? `url(${item.thumb}) center/cover` : "linear-gradient(135deg, oklch(0.3 0.08 30), oklch(0.2 0.05 25))" }}>
+                      <div className="absolute inset-0 grid place-items-center bg-black/20 group-hover:bg-black/40 transition">
+                        <Video className="w-10 h-10 text-rose-gold" strokeWidth={1.2} />
+                      </div>
                     </div>
-                  </div>
-                </a>
+                  </a>
+                ) : (
+                  <PaidGate label="Locked">
+                    <a href={normalizeUrl(item.videoUrl!)} target="_blank" rel="noreferrer" className="block">
+                      <div className="aspect-video relative" style={{ background: item.thumb ? `url(${item.thumb}) center/cover` : "linear-gradient(135deg, oklch(0.3 0.08 30), oklch(0.2 0.05 25))" }}>
+                        <div className="absolute inset-0 grid place-items-center bg-black/20 group-hover:bg-black/40 transition">
+                          <Video className="w-10 h-10 text-rose-gold" strokeWidth={1.2} />
+                        </div>
+                      </div>
+                    </a>
+                  </PaidGate>
+                )
               ) : (
                 <div className="aspect-video relative" style={{ background: "linear-gradient(135deg, oklch(0.3 0.08 30), oklch(0.2 0.05 25))" }}>
                   <div className="absolute inset-0 grid place-items-center bg-black/20">
@@ -151,10 +169,20 @@ function VideosSection({ isAdmin }: { isAdmin: boolean }) {
                 {item.speaker && <div className="text-xs text-muted-foreground mt-1">{item.speaker}</div>}
                 {item.documentUrl && (
                   <div className="mt-2">
-                    {isDriveUrl(item.documentUrl) ? (
-                      <button onClick={() => setViewing({ url: item.documentUrl!, title: item.title })} className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><Eye className="w-3 h-3" /> View document</button>
+                    {i === 0 ? (
+                      isDriveUrl(item.documentUrl) ? (
+                        <button onClick={() => setViewing({ url: item.documentUrl!, title: item.title })} className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><Eye className="w-3 h-3" /> View document</button>
+                      ) : (
+                        <a href={normalizeUrl(item.documentUrl!)} target="_blank" rel="noreferrer" className="btn-ghost-gold rounded-full px-4 py-2 text-xs inline-flex items-center gap-1.5"><FileText className="w-3 h-3" /> Open document</a>
+                      )
                     ) : (
-                      <a href={normalizeUrl(item.documentUrl!)} target="_blank" rel="noreferrer" className="btn-ghost-gold rounded-full px-4 py-2 text-xs inline-flex items-center gap-1.5"><FileText className="w-3 h-3" /> Open document</a>
+                      <PaidGate label="Locked" className="inline-block">
+                        {isDriveUrl(item.documentUrl) ? (
+                          <button onClick={() => setViewing({ url: item.documentUrl!, title: item.title })} className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><Eye className="w-3 h-3" /> View document</button>
+                        ) : (
+                          <a href={normalizeUrl(item.documentUrl!)} target="_blank" rel="noreferrer" className="btn-ghost-gold rounded-full px-4 py-2 text-xs inline-flex items-center gap-1.5"><FileText className="w-3 h-3" /> Open document</a>
+                        )}
+                      </PaidGate>
                     )}
                   </div>
                 )}

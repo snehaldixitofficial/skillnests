@@ -6,7 +6,7 @@ import { Plus, Trash2, Video, ExternalLink, Code2, Users, MonitorPlay } from "lu
 import { skillStore, codingStore } from "@/stores";
 import { uid } from "@/lib/local-store";
 import { toast } from "sonner";
-import { PaidPageGate } from "@/components/PaidGate";
+import { PaidGate } from "@/components/PaidGate";
 
 export const Route = createFileRoute("/_authenticated/skill-share")({
   ssr: false,
@@ -62,7 +62,7 @@ function SkillSharePage() {
           <p className="text-sm text-muted-foreground mt-2 max-w-2xl">From watercolour and chess to live coding sessions — teach what you love, build with friends.</p>
         </div>
 
-        <PaidPageGate>
+        <>
 
         {/* CODING WORKSHOPS SECTION */}
         <section>
@@ -94,7 +94,7 @@ function SkillSharePage() {
 
           <div className="space-y-4">
             {sortedWs.length === 0 && <div className="glass rounded-2xl p-10 text-center text-sm text-muted-foreground">No upcoming workshops.</div>}
-            {sortedWs.map((w) => (
+            {sortedWs.map((w, i) => (
               <div key={w.id} className="glass rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
                 <MonitorPlay className="w-6 h-6 text-rose-gold shrink-0" strokeWidth={1.2} />
                 <div className="flex-1 min-w-0">
@@ -102,7 +102,13 @@ function SkillSharePage() {
                   <div className="text-xs text-muted-foreground font-mono">{w.language} · {w.level} · {new Date(w.startsAt).toLocaleString()}</div>
                   {w.blurb && <div className="text-sm text-muted-foreground mt-2">{w.blurb}</div>}
                 </div>
-                <a href={w.meetUrl} target="_blank" rel="noreferrer" className="btn-phoenix rounded-full px-5 py-2.5 text-sm flex items-center gap-2 shrink-0"><ExternalLink className="w-4 h-4" /> Join via Google Meet</a>
+                {i === 0 ? (
+                  <a href={w.meetUrl} target="_blank" rel="noreferrer" className="btn-phoenix rounded-full px-5 py-2.5 text-sm flex items-center gap-2 shrink-0"><ExternalLink className="w-4 h-4" /> Join via Google Meet</a>
+                ) : (
+                  <PaidGate label="Locked" className="shrink-0">
+                    <a href={w.meetUrl} target="_blank" rel="noreferrer" className="btn-phoenix rounded-full px-5 py-2.5 text-sm flex items-center gap-2"><ExternalLink className="w-4 h-4" /> Join via Google Meet</a>
+                  </PaidGate>
+                )}
                 {isAdmin && <button onClick={() => codingStore.update((p) => p.filter((x) => x.id !== w.id))} className="text-muted-foreground hover:text-crimson p-2"><Trash2 className="w-4 h-4" /></button>}
               </div>
             ))}
@@ -133,15 +139,24 @@ function SkillSharePage() {
 
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 [column-fill:_balance]">
             {posts.length === 0 && <div className="glass rounded-2xl p-10 text-center text-sm text-muted-foreground break-inside-avoid">Nothing posted yet — be the first.</div>}
-            {posts.map((p) => (
+            {posts.map((p, i) => (
               <div key={p.id} className="mb-5 break-inside-avoid glass rounded-2xl overflow-hidden">
                 <div className="p-5">
                   <div className="text-[10px] font-mono uppercase tracking-widest text-rose-gold mb-2">{p.authorName}</div>
                   <div className="font-serif text-xl leading-snug mb-2">{p.title}</div>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-4">{p.body}</p>
                   <div className="flex flex-wrap gap-2">
-                    {p.videoUrl && <a href={p.videoUrl} target="_blank" rel="noreferrer" className="text-xs btn-ghost-gold rounded-full px-3 py-1.5 flex items-center gap-1.5"><Video className="w-3 h-3" /> Watch</a>}
-                    {p.classUrl && <a href={p.classUrl} target="_blank" rel="noreferrer" className="text-xs btn-phoenix rounded-full px-3 py-1.5 flex items-center gap-1.5"><ExternalLink className="w-3 h-3" /> Join class</a>}
+                    {i === 0 ? (
+                      <>
+                        {p.videoUrl && <a href={p.videoUrl} target="_blank" rel="noreferrer" className="text-xs btn-ghost-gold rounded-full px-3 py-1.5 flex items-center gap-1.5"><Video className="w-3 h-3" /> Watch</a>}
+                        {p.classUrl && <a href={p.classUrl} target="_blank" rel="noreferrer" className="text-xs btn-phoenix rounded-full px-3 py-1.5 flex items-center gap-1.5"><ExternalLink className="w-3 h-3" /> Join class</a>}
+                      </>
+                    ) : (
+                      <PaidGate label="Locked" className="inline-flex gap-2">
+                        {p.videoUrl && <a href={p.videoUrl} target="_blank" rel="noreferrer" className="text-xs btn-ghost-gold rounded-full px-3 py-1.5 flex items-center gap-1.5"><Video className="w-3 h-3" /> Watch</a>}
+                        {p.classUrl && <a href={p.classUrl} target="_blank" rel="noreferrer" className="text-xs btn-phoenix rounded-full px-3 py-1.5 flex items-center gap-1.5"><ExternalLink className="w-3 h-3" /> Join class</a>}
+                      </PaidGate>
+                    )}
                     {(isAdmin || user?.email === p.authorEmail) && <button onClick={() => removeSkill(p.id, p.authorEmail)} className="ml-auto text-muted-foreground hover:text-crimson p-1.5"><Trash2 className="w-3.5 h-3.5" /></button>}
                   </div>
                 </div>
@@ -150,7 +165,7 @@ function SkillSharePage() {
           </div>
         </section>
 
-        </PaidPageGate>
+        </>
       </div>
     </main>
   );

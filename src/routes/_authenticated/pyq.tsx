@@ -6,7 +6,7 @@ import { ArrowLeft, BookOpen, Plus, Trash2, FileDown, Eye } from "lucide-react";
 import { pyqStore, type PYQSubject, type PYQClass, type PYQPaper, type PYQStream } from "@/stores";
 import { uid } from "@/lib/local-store";
 import { toast } from "sonner";
-import { PaidPageGate, PaidGate } from "@/components/PaidGate";
+import { PaidGate } from "@/components/PaidGate";
 import { DrivePdfViewer } from "@/components/DrivePdfViewer";
 import { isDriveUrl } from "@/lib/drive";
 
@@ -41,7 +41,7 @@ function PYQPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-16">
         <Breadcrumb stream={stream} subject={subject} klass={klass} year={year} onStream={setStream} onSubject={setSubject} onClass={setKlass} onYear={setYear} />
 
-        <PaidPageGate peek={!stream ? <StreamPickerPeek /> : undefined}>
+        <>
           {!stream && <StreamPicker onPick={setStream} />}
           {stream && !subject && <SubjectGrid stream={stream} onPick={setSubject} />}
           {stream && subject && !klass && <ClassPicker stream={stream} subject={subject} onPick={setKlass} />}
@@ -56,7 +56,7 @@ function PYQPage() {
               isAdmin={isAdmin}
             />
           )}
-        </PaidPageGate>
+        </>
       </div>
     </main>
   );
@@ -207,20 +207,28 @@ function PapersList({ stream, subject, klass, year, papers, isAdmin }: { stream:
       )}
       <div className="space-y-3">
         {papers.length === 0 && <div className="glass rounded-2xl p-10 text-center text-sm text-muted-foreground">No papers yet for {year}.</div>}
-        {papers.map((p) => (
+        {papers.map((p, i) => (
           <div key={p.id} className="glass rounded-2xl p-4 flex items-center gap-4">
             <FileDown className="w-5 h-5 text-rose-gold shrink-0" strokeWidth={1.2} />
             <div className="flex-1 min-w-0">
               <div className="font-serif text-lg truncate">{p.title}</div>
               <div className="text-xs text-muted-foreground font-mono">{STREAM_LABEL[stream]} · {subject} · {klass}th · {p.year}</div>
             </div>
-            <PaidGate label="Locked">
-              {isDriveUrl(p.url) ? (
+            {i === 0 ? (
+              isDriveUrl(p.url) ? (
                 <button onClick={() => setViewing({ url: p.url, title: p.title })} className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><Eye className="w-3 h-3" /> View</button>
               ) : (
                 <a href={p.url} target="_blank" rel="noreferrer" className="btn-ghost-gold rounded-full px-4 py-2 text-xs">Download</a>
-              )}
-            </PaidGate>
+              )
+            ) : (
+              <PaidGate label="Locked">
+                {isDriveUrl(p.url) ? (
+                  <button onClick={() => setViewing({ url: p.url, title: p.title })} className="btn-phoenix rounded-full px-4 py-2 text-xs flex items-center gap-1.5"><Eye className="w-3 h-3" /> View</button>
+                ) : (
+                  <a href={p.url} target="_blank" rel="noreferrer" className="btn-ghost-gold rounded-full px-4 py-2 text-xs">Download</a>
+                )}
+              </PaidGate>
+            )}
             {isAdmin && <button onClick={() => remove(p.id)} className="text-muted-foreground hover:text-crimson p-2"><Trash2 className="w-4 h-4" /></button>}
           </div>
         ))}

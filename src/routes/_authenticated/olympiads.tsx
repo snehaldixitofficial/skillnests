@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Trophy, Plus, Trash2, ExternalLink, X } from "lucide-react";
 import { olympiadStore, type OlympiadItem, type OlympiadResource } from "@/stores";
 import { uid } from "@/lib/local-store";
-import { PaidPageGate } from "@/components/PaidGate";
+import { PaidGate } from "@/components/PaidGate";
 
 export const Route = createFileRoute("/_authenticated/olympiads")({
   ssr: false,
@@ -26,10 +26,10 @@ function OlympiadsPage() {
           <h1 className="font-serif text-4xl mt-1">For depth. Not medals.</h1>
         </div>
 
-        <PaidPageGate>
+        <>
           {isAdmin && <AdminForm />}
           <Grid items={items} isAdmin={isAdmin} />
-        </PaidPageGate>
+        </>
       </div>
     </main>
   );
@@ -117,7 +117,15 @@ function Grid({ items, isAdmin }: { items: OlympiadItem[]; isAdmin: boolean }) {
               <div className="text-[10px] font-mono uppercase tracking-widest text-rose-gold mb-2">Resources</div>
               <ul className="text-xs space-y-1">
                 {o.resources.map((r, i) => (
-                  <li key={i}><a href={r.url} target="_blank" rel="noreferrer" className="text-rose-gold hover:underline inline-flex items-center gap-1">{r.title} <ExternalLink className="w-3 h-3" /></a></li>
+                  <li key={i}>
+                    {i === 0 ? (
+                      <a href={r.url} target="_blank" rel="noreferrer" className="text-rose-gold hover:underline inline-flex items-center gap-1">{r.title} <ExternalLink className="w-3 h-3" /></a>
+                    ) : (
+                      <PaidGate label="Locked" className="inline-block">
+                        <a href={r.url} target="_blank" rel="noreferrer" className="text-rose-gold hover:underline inline-flex items-center gap-1">{r.title} <ExternalLink className="w-3 h-3" /></a>
+                      </PaidGate>
+                    )}
+                  </li>
                 ))}
               </ul>
             </>
