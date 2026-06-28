@@ -22,7 +22,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { auth as fbAuth } from "@/lib/firebase";
-import { meetingsStore } from "@/stores";
+import { meetingsStore, noticeStore, type Notice } from "@/stores";
+import { uid } from "@/lib/local-store";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "SkillNests" }] }),
@@ -93,6 +94,42 @@ const features: Array<{ to: FeaturePath; icon: LucideIcon; title: string; desc: 
 function Dashboard() {
   const { user, isAdmin, isPaid } = useAuth();
   const meetings = meetingsStore.use();
+  const notices = noticeStore.use();
+
+  // Notification pop-up logic
+  useEffect(() => {
+    if (notices.length === 0) return;
+    const latestNotice = [...notices].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    const lastSeen = localStorage.getItem("lastSeenNoticeId");
+    
+    if (latestNotice.id !== lastSeen) {
+      // Create a toast notification
+      const t = document.createElement("div");
+      t.className = "fixed bottom-4 right-4 z-50 glass-strong p-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-5";
+      t.innerHTML = `
+        <div class="h-10 w-10 rounded-full bg-rose-gold/20 flex items-center justify-center text-rose-gold shrink-0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-foreground">New Notice</div>
+          <div class="text-xs text-muted-foreground mt-0.5">Oh! The Admin added something in the Notice Board, check it out!</div>
+        </div>
+        <button class="text-muted-foreground hover:text-foreground self-start" onclick="this.parentElement.remove()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      `;
+      document.body.appendChild(t);
+      localStorage.setItem("lastSeenNoticeId", latestNotice.id);
+      
+      setTimeout(() => {
+        if (document.body.contains(t)) {
+          t.style.opacity = "0";
+          t.style.transition = "opacity 0.5s ease";
+          setTimeout(() => t.remove(), 500);
+        }
+      }, 8000);
+    }
+  }, [notices]);
 
   const now = Date.now();
   const upcoming = meetings
@@ -116,8 +153,9 @@ function Dashboard() {
               "radial-gradient(ellipse at center, hsl(var(--rose-gold)/0.08), transparent 60%)",
           }}
         />
-        <div className="mx-auto max-w-6xl relative">
+        <div className="mx-auto max-w-6xl relative flex flex-col md:flex-row gap-8 justify-between items-start">
           <motion.div
+            className="flex-1"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
@@ -158,6 +196,63 @@ function Dashboard() {
                 <Link to="/upgrade" className="btn-ghost-gold px-6 py-3 rounded-full text-sm font-medium border-rose-gold/40 text-rose-gold">
                   Unlock everything · ₹49/month
                 </Link>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Notice Board */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="w-full md:w-[320px] lg:w-[380px] shrink-0 glass-strong rounded-3xl p-5 flex flex-col max-h-[350px]"
+          >
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-rose-gold/20">
+              <div>
+                <div className="font-serif text-xl text-gradient-gold">Notice Board</div>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5">Announcements & Updates</div>
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    const title = prompt("Notice Title:");
+                    if (!title) return;
+                    const body = prompt("Notice Body:");
+                    if (!body) return;
+                    noticeStore.update(p => [
+                      { id: uid(), title, body, authorName: user?.name || "Admin", createdAt: new Date().toISOString() },
+                      ...p
+                    ]);
+                  }}
+                  className="p-1.5 rounded-full hover:bg-rose-gold/10 text-rose-gold transition"
+                  title="Add Notice"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5v14"/></svg>
+                </button>
+              )}
+            </div>
+            
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-rose-gold/20">
+              {notices.length === 0 ? (
+                <div className="text-sm text-muted-foreground italic text-center py-8">No notices right now.</div>
+              ) : (
+                [...notices].sort((a,b) => b.createdAt.localeCompare(a.createdAt)).map(n => (
+                  <div key={n.id} className="relative group p-3 rounded-xl bg-foreground/5 hover:bg-foreground/10 transition">
+                    {isAdmin && (
+                      <button 
+                        onClick={() => noticeStore.update(p => p.filter(x => x.id !== n.id))}
+                        className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-crimson opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                      </button>
+                    )}
+                    <div className="font-serif text-base text-foreground/90 pr-6">{n.title}</div>
+                    <div className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{n.body}</div>
+                    <div className="text-[9px] font-mono uppercase tracking-wider text-rose-gold/70 mt-2">
+                      {new Date(n.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </motion.div>

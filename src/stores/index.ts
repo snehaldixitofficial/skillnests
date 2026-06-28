@@ -137,3 +137,13 @@ export type OlympiadItem = {
   blurb?: string;
 };
 export const olympiadStore = createLocalStore<OlympiadItem[]>("sn-olympiads", [], undefined, "Olympiad");
+
+/* ---------------- Notice Board ---------------- */
+export type Notice = {
+  id: string;
+  title: string;
+  body: string;
+  authorName: string;
+  createdAt: string;
+};
+export const noticeStore = createLocalStore<Notice[]>("sn-notices", [], undefined, "Notice Board");
